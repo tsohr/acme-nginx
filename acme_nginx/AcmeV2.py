@@ -91,6 +91,17 @@ class AcmeV2(Acme):
             directory=directory
         )
         order = json.loads(order)
+        
+        # didn't know firwall blocked. the server may returning: 
+        # {
+        #   "type": "urn:ietf:params:acme:error:rateLimited",
+        #   "detail": "Error creating new order :: too many failed authorizations recently: see https://letsencrypt.org/docs/rate-limits/",
+        #   "status": 429
+        # }
+        if 'authorizations' not in order:
+          self.log.error("error creating order: " + json.dumps(order))
+          sys.exit(1)
+
         self.log.info('order created')
         for url in order['authorizations']:
             auth = json.loads(urlopen(url).read().decode('utf8'))
